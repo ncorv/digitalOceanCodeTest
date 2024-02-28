@@ -22,8 +22,8 @@ $ pip install PyGithub textual "textual[syntax]" && python .\main.py
 
 * First the program will download the contents of the repo to ./repo using PyGithub, which provides a wrapper around the GitHub REST API v3
 
-* We use PyGithub's get_repo() and get_contents("") to create an iterable over each file + folder
-  * Iterating over contents we first discriminate between file and folder, if it's a folder we get_contents() again at the specific folders path
+* We use PyGithub's `get_repo()` and `get_contents("")` to create an iterable over each file + folder
+  * Iterating over contents we first discriminate between file and folder, if it's a folder we `get_contents()` again at the specific folders path
   * If it's a file, we write the content.
 * Next we initialize Textual with a layout containing a Header, Footer, DirectoryTree and TextArea set to the code_editor constructor.
 
@@ -41,7 +41,7 @@ $ pip install PyGithub textual "textual[syntax]" && python .\main.py
 
 ### Example Use Case:
 #### Edit and commit a file
-* First create a config.json from the example and populate the key
+* First create a `config.json` from the example and populate the key
 * Then launch the program, edit a file, and save it (CTRL+S)
 
 ![image](https://github.com/ncorv/digitalOceanCodeTest/assets/33473556/325a4e01-a05b-4089-9cae-fb6f11fd799d)
