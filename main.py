@@ -1,14 +1,16 @@
 import sys
 import os
 import json
+from github import Github
+from github import Auth
 from rich.traceback import Traceback
 from textual.app import App, ComposeResult
-from textual.containers import Container, VerticalScroll
+from textual.containers import Container
 from textual.reactive import var
-from textual.widgets import DirectoryTree, Footer, Header, Static, TextArea
+from textual.widgets import DirectoryTree, Footer, Header, TextArea
 
 githubAPIKey = "foo"
-commitMessage = ""
+repo_url = "https://github.com/ncorv/CodeTestEditRepo"
 
 
 def create_default_config(config_path):
@@ -20,13 +22,10 @@ def create_default_config(config_path):
 class DOCodeTest(App):
     CSS_PATH = "main.tcss"
     BINDINGS = [
-        ("ctrl+f", "toggle_files", "Toggle Files"),
         ("ctrl+c", "quit", "Quit"),
-        ("ctrl+s", "save", "Save"),
+        ("ctrl+s", "save", "Save Open File"),
         ("ctrl+q", "show_key", "Show API Key"),
-        ("ctrl+u", "edit_commit_message", "Edit Commit Message"),
-        ("ctrl+l", "save_commit_message", "Save Commit Message"),
-        ("ctrl+o", "push_commit", "Push Commit"),
+        ("ctrl+o", "push_commit", "Push File As Commit"),
     ]
     show_tree = var(True)
 
@@ -34,7 +33,35 @@ class DOCodeTest(App):
         self.set_class(show_tree, "-show-tree")
 
     def compose(self) -> ComposeResult:
-        path = "./" if len(sys.argv) < 2 else sys.argv[1]
+        global githubAPIKey
+        global repo_url
+
+        path = "./repo/" if len(sys.argv) < 2 else sys.argv[1]
+        username, repo_name = repo_url.split('/')[-2:]
+        self.load_config()
+        auth = Auth.Token(githubAPIKey)
+        g = Github(auth=auth)
+        repo = g.get_user(username).get_repo(repo_name)
+        contents = repo.get_contents("")
+
+        for content in contents:
+            if content.type == "file":
+                file_path = os.path.join(path, content.path)
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                with open(file_path, "wb") as file:
+                    file.write(content.decoded_content)
+            else:  # is directory
+                dir_path = os.path.join(path, content.path)
+                os.makedirs(dir_path, exist_ok=True)
+
+                sub_contents = repo.get_contents(content.path)
+                for sub_content in sub_contents:
+                    sub_file_path = os.path.join(dir_path, sub_content.path.split('/')[-1])
+                    if sub_content.type == "file":
+                        os.makedirs(os.path.dirname(sub_file_path), exist_ok=True)
+                        with open(sub_file_path, "wb") as file:
+                            file.write(sub_content.decoded_content)
+
         yield Header()
         with Container():
             yield DirectoryTree(path, id="tree-view")
@@ -43,7 +70,6 @@ class DOCodeTest(App):
 
     def on_mount(self) -> None:
         self.query_one(DirectoryTree).focus()
-        self.load_config()
 
     def load_config(self):
         global githubAPIKey
@@ -91,16 +117,21 @@ class DOCodeTest(App):
         code_view.load_text("API Key currently set to: " + githubAPIKey)
         self.sub_title = "Current API Key"
 
-    def action_edit_commit_message(self) -> None:
+    def action_push_commit(self) -> None:
         code_view = self.query_one("#code", TextArea)
-        code_view.load_text(commitMessage)
-        self.sub_title = "Editing Commit Message"
+        code_view.load_text("API Key currently set to: " + githubAPIKey)
+        self.sub_title = "Current API Key"
 
-    def action_save_commit_message(self) -> None:
-        global commitMessage
-        code_view = self.query_one("#code", TextArea)
-        commitMessage = code_view.text
-
+    def create_directory_structure(self, contents, path, repo=None):
+        for content in contents:
+            file_path = os.path.join(path, content.path)
+            if content.type == "file":
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                with open(file_path, "wb") as file:
+                    file.write(content.decoded_content)
+            else:
+                os.makedirs(file_path, exist_ok=True)
+                self.create_directory_structure(repo.get_contents(content.path), file_path)
 
 if __name__ == "__main__":
     DOCodeTest().run()
