@@ -85,6 +85,7 @@ class DOCodeTest(App):
 
     def on_mount(self) -> None:
         self.query_one(DirectoryTree).focus()
+        self.about()
 
     def load_config(self):
         global githubAPIKey
@@ -128,11 +129,7 @@ class DOCodeTest(App):
         self.save_current_file()
 
     def action_show_key(self) -> None:
-        code_view = self.query_one("#code", TextArea)
-        code_view.load_text(
-            "API Key currently set to: " + githubAPIKey + "\n\nCurrent GitHub Repo: " + repo_url
-            + "\n\nBy: Nicholas A Corvasce, using PyGithub and Textual\n2024")
-        self.sub_title = "About"
+        self.about()
 
     def action_push_commit(self) -> None:
         global githubAPIKey
@@ -184,6 +181,13 @@ class DOCodeTest(App):
             else:
                 os.makedirs(file_path, exist_ok=True)
                 self.create_directory_structure(repo.get_contents(content.path), file_path)
+
+    def about(self):
+        code_view = self.query_one("#code", TextArea)
+        code_view.load_text(
+            "API Key currently set to: " + githubAPIKey + "\n\nCurrent GitHub Repo: " + repo_url
+            + "\n\nBy: Nicholas A Corvasce, using PyGithub and Textual\n2024")
+        self.sub_title = "About"
 
 
 if __name__ == "__main__":
