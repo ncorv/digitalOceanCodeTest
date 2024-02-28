@@ -16,11 +16,6 @@ DOCodeTest.-show-tree #tree-view {
     max-width: 50%;
 }
 
-
-#code-view {
-    overflow: auto scroll;
-    min-width: 100%;
-}
 #code {
     width: 100%;
 }
