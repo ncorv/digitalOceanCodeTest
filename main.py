@@ -161,10 +161,10 @@ class DOCodeTest(App):
                     pass  # File does not exist yet
 
                 if existing_file:
-                    repo.update_file(existing_file.path, f"Update {current_path}", file_content, existing_file.sha,
+                    repo.update_file(existing_file.path, f"Update {repo_relative_path}", file_content, existing_file.sha,
                                      branch="main")
                 else:
-                    repo.create_file(repo_relative_path, f"Committing {current_path}", file_content, branch="main")
+                    repo.create_file(repo_relative_path, f"Committing {repo_relative_path}", file_content, branch="main")
 
                 g.close()
 
